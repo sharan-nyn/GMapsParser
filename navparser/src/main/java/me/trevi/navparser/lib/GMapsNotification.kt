@@ -226,25 +226,22 @@ internal class GMapsNotification(cx: Context, sbn: StatusBarNotification) : Navi
 
     private fun parseNavigationDirections(directionsSeq: CharSequence) {
         val directions = directionsSeq.toString()
-        val directionsParts = directions.split(SPLIT_REGEX)
+        val directionsParts = directions.split("\\p{Space}+".toRegex())
 
         Log.d("Navigation directions split in $directionsParts")
 
-        if (directionsParts.size < 2) {
+        if (directionsParts.isEmpty()) {
             navigationData.isRerouting = true
             navigationData.nextDirection.localeString = directions
             return
         }
 
-        val separator = getSplitSeparator(directions)
-        val distance = directionsParts.first()
-        val direction = directionsParts.subList(1, directionsParts.size).joinToString(separator)
         val directionHtml = getHtml(directionsSeq)
 
         navigationData.nextDirection = try {
-            NavigationDirection(direction, directionHtml, parseNavigationDistance(mCx, distance))
+            NavigationDirection(directions, directionHtml, parseNavigationDistance(mCx, directions))
         } catch (e : UnknownFormatConversionException) {
-            NavigationDirection(direction)
+            NavigationDirection(directions)
         }
 
         Log.d("Navigation directions parsed to ${navigationData.nextDirection}")
